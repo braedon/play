@@ -1,9 +1,10 @@
 #!/usr/bin/python2
-from bottle import get, run, response
+from bottle import get, run, request, response
 from gmusicapi import Webclient, Mobileclient
 import requests
 import ConfigParser
 import logging
+import json
 
 f = logging.Formatter(
     '[%(asctime)s]%(name)s.%(levelname)s %(threadName)s %(message)s')
@@ -33,14 +34,32 @@ def get_mobc():
     client.login(email, password)
     return client
 
-@get('/')
-def get_songs():
+def track_json(result):
+    rawTrack = result['track']
+    return {
+        'id': rawTrack['storeId'],
+        'title': rawTrack['title'],
+        'album': rawTrack['album'],
+        'artist': rawTrack['artist'],
+        'durationMillis': rawTrack['durationMillis'],
+    }
+
+@get('/search')
+def search():
+    query = request.query.q
+
     mobc = get_mobc()
-    for song in client.get_all_songs():
-        yield str(song)
+
+    response.content_type = 'application/json'
+
+    results = [
+        track_json(result)
+        for result in mobc.search_all_access(query, max_results=10)['song_hits']
+    ]
+    return json.dumps(results)
 
 @get('/download/<songId>')
-def get_song(songId):
+def download_song(songId):
     webc = get_webc()
 
     log.debug('downloading song ID ' + songId)
@@ -49,14 +68,13 @@ def get_song(songId):
     return webc.get_stream_audio(songId)
 
 @get('/stream/<songId>')
-def get_song(songId):
+def stream_song(songId):
     mobc = get_mobc()
     webc = get_webc()
 
     log.debug('streaming song ID ' + songId)
 
     info = mobc.get_track_info(songId)
-    print info
 
     response.content_type = 'audio/mpeg'
     response.content_length = info['estimatedSize']
@@ -66,7 +84,7 @@ def get_song(songId):
         yield requests.get(url).content
 
 @get('/urls/<songId>')
-def get_song(songId):
+def song_urls(songId):
     webc = get_webc()
 
     log.debug('getting urls for song ID ' + songId)
