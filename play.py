@@ -93,4 +93,4 @@ def song_urls(songId):
         yield url + '\n'
 
 if __name__ == "__main__":
-    run(host=host, port=port, debug=debug)
+    run(server='paste', host=host, port=port, debug=debug)

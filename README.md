@@ -17,7 +17,7 @@ port = 8080
 debug = false
 ```
 
-You will also need to install Bottle, Requests and GMusicApi
+You will also need to install Bottle, Paste, Requests and GMusicApi
 ```
-> sudo pip install bottle requests gmusicapi
+> sudo pip install bottle paste requests gmusicapi
 ```
