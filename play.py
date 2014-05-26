@@ -89,8 +89,7 @@ def song_urls(songId):
 
     log.debug('getting urls for song ID ' + songId)
 
-    for url in webc.get_stream_urls(songId):
-        yield url + '\n'
+    return json.dumps(webc.get_stream_urls(songId))
 
 if __name__ == "__main__":
     run(server='paste', host=host, port=port, debug=debug)
