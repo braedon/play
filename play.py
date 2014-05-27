@@ -22,7 +22,7 @@ password = config.get('login', 'password')
 
 host = config.get('server', 'host')
 port = config.get('server', 'port')
-debug = config.get('server', 'debug')
+debug = config.getboolean('server', 'debug')
 
 def get_webc():
     client = Webclient(validate=False)
