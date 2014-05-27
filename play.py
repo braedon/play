@@ -34,8 +34,7 @@ def get_mobc():
     client.login(email, password)
     return client
 
-def track_json(result):
-    rawTrack = result['track']
+def track_json(rawTrack):
     return {
         'id': rawTrack['storeId'],
         'title': rawTrack['title'],
@@ -53,10 +52,18 @@ def search():
     response.content_type = 'application/json'
 
     results = [
-        track_json(result)
+        track_json(result['track'])
         for result in mobc.search_all_access(query, max_results=10)['song_hits']
     ]
     return json.dumps(results)
+
+@get('/info/<songId>')
+def download_song(songId):
+    mobc = get_mobc()
+
+    log.debug('getting info for song ID ' + songId)
+
+    return track_json(mobc.get_track_info(songId))
 
 @get('/download/<songId>')
 def download_song(songId):
