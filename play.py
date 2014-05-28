@@ -43,6 +43,9 @@ def track_json(rawTrack):
         'durationMillis': long(rawTrack['durationMillis']),
     }
 
+def add_cors(response):
+    response.headers['Access-Control-Allow-Origin'] = '*'
+
 @get('/search')
 def search():
     query = request.query.q
@@ -50,6 +53,7 @@ def search():
     mobc = get_mobc()
 
     response.content_type = 'application/json'
+    add_cors(response)
 
     results = [
         track_json(result['track'])
@@ -63,6 +67,8 @@ def download_song(songId):
 
     log.debug('getting info for song ID ' + songId)
 
+    add_cors(response)
+
     return track_json(mobc.get_track_info(songId))
 
 @get('/download/<songId>')
@@ -72,6 +78,8 @@ def download_song(songId):
     log.debug('downloading song ID ' + songId)
 
     response.content_type = 'audio/mpeg'
+    add_cors(response)
+
     return webc.get_stream_audio(songId)
 
 @get('/stream/<songId>')
@@ -85,6 +93,7 @@ def stream_song(songId):
 
     response.content_type = 'audio/mpeg'
     response.content_length = info['estimatedSize']
+    add_cors(response)
 
     for url in webc.get_stream_urls(songId):
         log.debug('streaming ' + songId + ' from url ' + url)
@@ -95,6 +104,8 @@ def song_urls(songId):
     webc = get_webc()
 
     log.debug('getting urls for song ID ' + songId)
+
+    add_cors(response)
 
     return json.dumps(webc.get_stream_urls(songId))
 
