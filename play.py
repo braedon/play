@@ -40,7 +40,7 @@ def track_json(rawTrack):
         'title': rawTrack['title'],
         'album': rawTrack['album'],
         'artist': rawTrack['artist'],
-        'durationMillis': rawTrack['durationMillis'],
+        'durationMillis': long(rawTrack['durationMillis']),
     }
 
 @get('/search')
