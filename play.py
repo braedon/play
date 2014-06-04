@@ -1,6 +1,6 @@
 #!/usr/bin/python2
 from bottle import get, run, request, response
-from gmusicapi import Webclient, Mobileclient
+from gmusicapi import Webclient, Mobileclient, CallFailure
 import requests
 import ConfigParser
 import logging
@@ -69,7 +69,14 @@ def download_song(songId):
 
     add_cors(response)
 
-    return track_json(mobc.get_track_info(songId))
+    try:
+        return track_json(mobc.get_track_info(songId))
+    except CallFailure as e:
+        if e.message.startswith('400 Client Error: Bad Request'):
+            response.status = 404
+            return '404 Song ID ' + songId + ' not found'
+        else:
+            raise
 
 @get('/download/<songId>')
 def download_song(songId):
