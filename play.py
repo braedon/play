@@ -34,21 +34,38 @@ def get_mobc():
     client.login(email, password)
     return client
 
-def track_json(rawTrack):
-    return {
-        'id': rawTrack['storeId'],
-        'title': rawTrack['title'],
-        'album': rawTrack['album'],
-        'artist': rawTrack['artist'],
-        'durationMillis': long(rawTrack['durationMillis']),
-    }
-
 def add_cors(response):
     response.headers['Access-Control-Allow-Origin'] = '*'
+
+def song_json(json):
+    return {
+        'id': json['storeId'],
+        'title': json['title'],
+        'album': json['album'],
+        'artist': json['artist'],
+        'durationMillis': long(json['durationMillis']),
+    }
+
+def album_json(json):
+    return {
+        'id': json['albumId'],
+        'title': json['name'],
+        'artist': json['artist'],
+    }
+
+result_types = {
+    'song': ('song_hits', 'track', song_json),
+    'album': ('album_hits', 'album', album_json),
+}
 
 @get('/search')
 def search():
     query = request.query.q
+    result_type = request.query.t
+    if not result_type or result_type not in result_types:
+        result_type = 'song'
+
+    results_section, result_section, json_extractor = result_types[result_type]
 
     mobc = get_mobc()
 
@@ -56,8 +73,8 @@ def search():
     add_cors(response)
 
     results = [
-        track_json(result['track'])
-        for result in mobc.search_all_access(query, max_results=10)['song_hits']
+        json_extractor(result[result_section])
+        for result in mobc.search_all_access(query, max_results=10)[results_section]
     ]
     return json.dumps(results)
 
@@ -70,7 +87,7 @@ def download_song(songId):
     add_cors(response)
 
     try:
-        return track_json(mobc.get_track_info(songId))
+        return song_json(mobc.get_track_info(songId))
     except CallFailure as e:
         if e.message.startswith('400 Client Error: Bad Request'):
             response.status = 404
