@@ -53,7 +53,7 @@ def album_json(json):
         'artist': json['artist'],
     }
 
-result_types = {
+search_types = {
     'song': ('song_hits', 'track', song_json),
     'album': ('album_hits', 'album', album_json),
 }
@@ -61,11 +61,11 @@ result_types = {
 @get('/search')
 def search():
     query = request.query.q
-    result_type = request.query.t
-    if not result_type or result_type not in result_types:
-        result_type = 'song'
+    search_type = request.query.t
+    if not search_type or search_type not in search_types:
+        search_type = 'song'
 
-    results_section, result_section, json_extractor = result_types[result_type]
+    results_section, result_section, json_extractor = search_types[search_type]
 
     mobc = get_mobc()
 
@@ -78,20 +78,38 @@ def search():
     ]
     return json.dumps(results)
 
-@get('/info/<songId>')
-def download_song(songId):
+
+def get_song(mobc, id):
+    return mobc.get_track_info(id)
+
+def get_album(mobc, id):
+    return mobc.get_album_info(id)
+
+info_types = {
+    'song': (get_song, song_json),
+    'album': (get_album, album_json),
+}
+
+@get('/info/<id>')
+def download_song(id):
+    info_type = request.query.t
+    if not info_type or info_type not in info_types:
+        info_type = 'song'
+
+    info_func, json_extractor = info_types[info_type]
+
     mobc = get_mobc()
 
-    log.debug('getting info for song ID ' + songId)
+    log.debug('getting info for ' + info_type + ' ' + id)
 
     add_cors(response)
 
     try:
-        return song_json(mobc.get_track_info(songId))
+        return json_extractor(info_func(mobc, id))
     except CallFailure as e:
-        if e.message.startswith('400 Client Error: Bad Request'):
+        if e.args[0].startswith('400 Client Error: Bad Request'):
             response.status = 404
-            return '404 Song ID ' + songId + ' not found'
+            return '404 ' + info_type + ' ' + id + ' not found'
         else:
             raise
 
