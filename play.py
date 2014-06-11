@@ -42,16 +42,26 @@ def song_json(json):
         'id': json['storeId'],
         'title': json['title'],
         'album': json['album'],
+        'disc': int(json['discNumber']),
+        'track': int(json['trackNumber']),
         'artist': json['artist'],
         'durationMillis': long(json['durationMillis']),
     }
 
+def tracks_json(json):
+    if 'tracks' in json:
+        return [song_json(track) for track in json['tracks']]
+
 def album_json(json):
-    return {
+    album = {
         'id': json['albumId'],
         'title': json['name'],
         'artist': json['artist'],
     }
+    tracks = tracks_json(json)
+    if tracks:
+        album['tracks'] = tracks
+    return album
 
 search_types = {
     'song': ('song_hits', 'track', song_json),
