@@ -19,6 +19,7 @@ config.read('play.cfg')
 
 email = config.get('login', 'email')
 password = config.get('login', 'password')
+device = config.get('login', 'device')
 
 host = config.get('server', 'host')
 port = config.get('server', 'port')
@@ -135,7 +136,22 @@ def download_song(songId):
     return webc.get_stream_audio(songId)
 
 @get('/stream/<songId>')
-def stream_song(songId):
+def stream_song_mobile(songId):
+    mobc = get_mobc()
+
+    log.debug('streaming song ID ' + songId + ' via mobile client')
+
+    info = mobc.get_track_info(songId)
+
+    response.content_type = 'audio/mpeg'
+    response.content_length = info['estimatedSize']
+    add_cors(response)
+
+    url = mobc.get_stream_url(songId, device)
+    return requests.get(url).content
+
+@get('/stream_web/<songId>')
+def stream_song_web(songId):
     mobc = get_mobc()
     webc = get_webc()
 
@@ -160,6 +176,16 @@ def song_urls(songId):
     add_cors(response)
 
     return json.dumps(webc.get_stream_urls(songId))
+
+@get('/devices')
+def devices():
+    webc = get_webc()
+
+    log.debug('getting devices for account')
+
+    add_cors(response)
+
+    return json.dumps(webc.get_registered_devices())
 
 if __name__ == "__main__":
     run(server='paste', host=host, port=port, debug=debug)
