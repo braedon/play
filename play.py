@@ -34,7 +34,7 @@ def get_webc():
 
 def get_mobc():
     client = Mobileclient(validate=False)
-    client.login(email, password)
+    client.login(email, password, device)
     return client
 
 def add_cors(response):
