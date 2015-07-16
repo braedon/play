@@ -6,6 +6,8 @@ import ConfigParser
 import logging
 import json
 
+logging.captureWarnings(True)
+
 f = logging.Formatter(
     '[%(asctime)s]%(name)s.%(levelname)s %(threadName)s %(message)s')
 log = logging.getLogger('')
@@ -141,14 +143,15 @@ def stream_song_mobile(songId):
 
     log.debug('streaming song ID ' + songId + ' via mobile client')
 
-    info = mobc.get_track_info(songId)
+    url = mobc.get_stream_url(songId)
+
+    response = requests.get(url)
 
     response.content_type = 'audio/mpeg'
-    response.content_length = info['estimatedSize']
+    response.content_length = response.headers['content-length']
     add_cors(response)
 
-    url = mobc.get_stream_url(songId, device)
-    return requests.get(url).content
+    return response.content
 
 @get('/stream_web/<songId>')
 def stream_song_web(songId):
