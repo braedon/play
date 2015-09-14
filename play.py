@@ -21,7 +21,11 @@ config.read('play.cfg')
 
 email = config.get('login', 'email')
 password = config.get('login', 'password')
-device = config.get('login', 'device')
+
+if config.has_option('login', 'device'):
+    device = config.get('login', 'device')
+else:
+    device = Mobileclient.FROM_MAC_ADDRESS
 
 host = config.get('server', 'host')
 port = config.get('server', 'port')

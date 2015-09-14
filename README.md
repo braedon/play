@@ -6,7 +6,7 @@ Find and stream tracks from Google Play Music
 You will need a Google Play Music account with All Access set up.
 
 Add your account details to a config file called `play.cfg` and place it in the root directory.
-The id for a mobile device registered with your account is required to stream music with `/stream/<songId>`. The current devices registered can be retrieved with `/devices`.
+The id for an android device is required for some endpoints. If a `device` is not specified, the computer's MAC address will be used as an ID. This usually works, but if not, set it manually. The current devices associated with your account can be retrieved with `/devices`.
 ```
 [login]
 email = <google account email>
